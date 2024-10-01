@@ -2,6 +2,8 @@ import subprocess
 import os
 import re
 
+diff_result = ""
+
 def check_commit_exists(repo_path, commit):
     try:
         subprocess.run(['git', '-C', repo_path, 'cat-file', '-e', commit],
@@ -60,4 +62,5 @@ if __name__ == "__main__":
     
     diff = get_git_diff(repo_path, commit1, commit2)
     formatted_diff = format_diff(diff)
-    print(formatted_diff)
+    diff_result = formatted_diff
+    print(diff_result)
