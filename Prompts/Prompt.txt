@@ -26,22 +26,47 @@ Output Format:
 * Recommendation: Steps or code changes required to fix the issue.
 * Severity Level: Critical, High, Medium, or Low.
 
-Example:
 
---BEGIN OF EXAMPLE--
+Output Format:
 
-Title: Hardcoded API Key Found in Source Code
+Please provide your findings in a JSON file with the following structure (wrapped in triple apostrohpes):
 
-Description: An API key for the payment gateway is hardcoded in PaymentProcessor.java at line 45.
+'''
+[
+  {
+    "title": "Brief title of the vulnerability",
+    "description": "Detailed explanation of the issue.",
+    "location": "File names and line numbers where the issue is found.",
+    "impact": "Potential consequences if the vulnerability is exploited.",
+    "recommendation": "Steps or code changes required to fix the issue.",
+    "severity_level": "Critical/High/Medium/Low"
+  },
+  {
+    "title": "Next vulnerability title",
+    "description": "Detailed explanation of the next issue.",
+    "location": "File names and line numbers where the next issue is found.",
+    "impact": "Potential consequences if the next vulnerability is exploited.",
+    "recommendation": "Steps or code changes required to fix the next issue.",
+    "severity_level": "Critical/High/Medium/Low"
+  }
+  // ... Continue for each vulnerability found
+]
+'''
 
-Location: /app/src/main/java/com/example/payment/PaymentProcessor.java:45
+Example (wrapped in triple apostrohpes):
 
-Impact: Attackers with access to the APK can decompile it to retrieve the API key, leading to unauthorized transactions.
+'''
+[
+  {
+    "title": "Hardcoded API Key Found in Source Code",
+    "description": "An API key for the payment gateway is hardcoded in 'PaymentProcessor.java' at line 45.",
+    "location": "/app/src/main/java/com/example/payment/PaymentProcessor.java:45",
+    "impact": "Attackers with access to the APK can decompile it to retrieve the API key, leading to unauthorized transactions.",
+    "recommendation": "Remove the hardcoded API key and store it securely using Android's Keystore system or fetch it securely from a remote server after authentication.",
+    "severity_level": "High"
+  }
+]
+'''
 
-Recommendation: Remove the hardcoded API key and store it securely using Android's Keystore system or fetch it securely from a remote server after authentication.
+Use this framework to conduct a thorough security review of the app code, ensuring all potential vulnerabilities are identified and addressed in the specified JSON format.
 
-Severity Level: High
-
---END OF EXAMPLE--
-
-Use this framework to conduct a thorough security review of the app code, ensuring all potential vulnerabilities are identified and addressed.
