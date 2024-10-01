@@ -1,0 +1,47 @@
+As a mobile security expert, please perform a comprehensive security analysis of the provided Android/iOS app code. Your analysis should focus on identifying potential security vulnerabilities, including but not limited to:
+
+* Insecure Data Storage: Look for sensitive data (e.g., personal information, authentication tokens) stored without proper encryption or protection mechanisms.
+* Improper Input Validation: Check for inputs that are not properly sanitized, which could lead to injection attacks or crashes.
+* Insecure Network Communication: Identify any use of non-secure protocols (e.g., HTTP instead of HTTPS) or weak SSL/TLS configurations.
+* Hardcoded Secrets: Search for embedded API keys, passwords, or other sensitive information hardcoded into the app.
+* Authentication and Authorization Flaws: Examine the authentication mechanisms for weaknesses and ensure proper authorization checks are in place.
+* Use of Deprecated or Vulnerable APIs: Spot any reliance on outdated libraries or APIs known to have security issues.
+* Insufficient Error Handling: Look for exceptions or errors that are not properly handled, potentially revealing stack traces or sensitive information.
+* Weak Cryptography: Identify the use of weak encryption algorithms or improper cryptographic implementations.
+* Permission Misconfigurations: Review the app's permissions to ensure they are necessary and not overly broad.
+
+Instructions:
+
+1. Identify and Describe Issues: For each security vulnerability found, provide a clear and concise description, including the affected code snippets or sections.
+2. Assess Impact: Explain the potential risks and impact associated with each vulnerability.
+3. Recommend Solutions: Offer practical recommendations or code fixes to address the identified issues.
+4. Prioritize Findings: Rank the vulnerabilities based on their severity (e.g., critical, high, medium, low).
+
+Output Format:
+
+* Title: Brief title of the vulnerability.
+* Description: Detailed explanation of the issue.
+* Location: File names and line numbers where the issue is found.
+* Impact: Potential consequences if the vulnerability is exploited.
+* Recommendation: Steps or code changes required to fix the issue.
+* Severity Level: Critical, High, Medium, or Low.
+
+Example:
+
+--BEGIN OF EXAMPLE--
+
+Title: Hardcoded API Key Found in Source Code
+
+Description: An API key for the payment gateway is hardcoded in PaymentProcessor.java at line 45.
+
+Location: /app/src/main/java/com/example/payment/PaymentProcessor.java:45
+
+Impact: Attackers with access to the APK can decompile it to retrieve the API key, leading to unauthorized transactions.
+
+Recommendation: Remove the hardcoded API key and store it securely using Android's Keystore system or fetch it securely from a remote server after authentication.
+
+Severity Level: High
+
+--END OF EXAMPLE--
+
+Use this framework to conduct a thorough security review of the app code, ensuring all potential vulnerabilities are identified and addressed.
