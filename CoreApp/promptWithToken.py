@@ -2,6 +2,8 @@ import json
 import subprocess
 import requests
 
+from codeDiff import diff_result
+
 prompt = '''As a mobile security expert, please perform a comprehensive security analysis of the provided Android/iOS app code. Your analysis should focus on identifying potential security vulnerabilities, including but not limited to:
 
 * Insecure Data Storage: Look for sensitive data (e.g., personal information, authentication tokens) stored without proper encryption or protection mechanisms.
