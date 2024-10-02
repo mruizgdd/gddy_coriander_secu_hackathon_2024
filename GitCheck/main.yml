@@ -9,14 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Checkout external repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
-          repository: git@github.com:mruizgdd/gddy_coriander_secu_hackathon_2024.git
+          repository: mruizgdd/gddy_coriander_secu_hackathon_2024
           path: coriander
           ref: main
+          token: ${{secrets.CORIANDER_TOKEN}}
 
       - name: Set up Python
         uses: actions/setup-python@v3
