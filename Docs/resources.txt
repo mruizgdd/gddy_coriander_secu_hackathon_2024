@@ -1,1 +1,3 @@
 JoMax JWT: https://github.com/gdcorp-engineering/ssojwt 
+
+vulnerableApp repo: https://github.com/mruizgdd/SecHackathonVulnerableApp.git
