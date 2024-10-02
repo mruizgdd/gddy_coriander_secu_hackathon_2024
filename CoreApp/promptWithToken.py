@@ -4,7 +4,8 @@ import requests
 
 from codeDiff import diff_result
 
-prompt = '''As a mobile security expert, please perform a comprehensive security analysis of the provided Android/iOS app code. Your analysis should focus on identifying potential security vulnerabilities, including but not limited to:
+prompt = """
+As a mobile security expert, please perform a comprehensive security analysis of the provided Android/iOS app code. Your analysis should focus on identifying potential security vulnerabilities, including but not limited to:
 
 * Insecure Data Storage: Look for sensitive data (e.g., personal information, authentication tokens) stored without proper encryption or protection mechanisms.
 * Improper Input Validation: Check for inputs that are not properly sanitized, which could lead to injection attacks or crashes.
@@ -32,27 +33,51 @@ Output Format:
 * Recommendation: Steps or code changes required to fix the issue.
 * Severity Level: Critical, High, Medium, or Low.
 
-Example:
 
---BEGIN OF EXAMPLE--
+Output Format:
 
-Title: Hardcoded API Key Found in Source Code
+Please provide your findings in a JSON file with the following structure (wrapped in triple apostrohpes):
 
-Description: An API key for the payment gateway is hardcoded in PaymentProcessor.java at line 45.
+'''
+[
+  {
+    "title": "Brief title of the vulnerability",
+    "description": "Detailed explanation of the issue.",
+    "location": "File names and line numbers where the issue is found.",
+    "impact": "Potential consequences if the vulnerability is exploited.",
+    "recommendation": "Steps or code changes required to fix the issue.",
+    "severity_level": "Critical/High/Medium/Low"
+  },
+  {
+    "title": "Next vulnerability title",
+    "description": "Detailed explanation of the next issue.",
+    "location": "File names and line numbers where the next issue is found.",
+    "impact": "Potential consequences if the next vulnerability is exploited.",
+    "recommendation": "Steps or code changes required to fix the next issue.",
+    "severity_level": "Critical/High/Medium/Low"
+  }
+  // ... Continue for each vulnerability found
+]
+'''
 
-Location: /app/src/main/java/com/example/payment/PaymentProcessor.java:45
+Example (wrapped in triple apostrohpes):
 
-Impact: Attackers with access to the APK can decompile it to retrieve the API key, leading to unauthorized transactions.
+'''
+[
+  {
+    "title": "Hardcoded API Key Found in Source Code",
+    "description": "An API key for the payment gateway is hardcoded in 'PaymentProcessor.java' at line 45.",
+    "location": "/app/src/main/java/com/example/payment/PaymentProcessor.java:45",
+    "impact": "Attackers with access to the APK can decompile it to retrieve the API key, leading to unauthorized transactions.",
+    "recommendation": "Remove the hardcoded API key and store it securely using Android's Keystore system or fetch it securely from a remote server after authentication.",
+    "severity_level": "High"
+  }
+]
+'''
 
-Recommendation: Remove the hardcoded API key and store it securely using Android's Keystore system or fetch it securely from a remote server after authentication.
-
-Severity Level: High
-
---END OF EXAMPLE--
-
-Use this framework to conduct a thorough security review of the app code, ensuring all potential vulnerabilities are identified and addressed. 
-
-Next is the iOS/Android code. '''
+Use this framework to conduct a thorough security review of the app code, ensuring all potential vulnerabilities are identified and addressed in the specified JSON format.
+The next lines are the code to review.
+"""
 
 def extract_message(response):
     """Extracts the 'message' value from a JSON response.
@@ -66,6 +91,9 @@ def extract_message(response):
 
     try:
         data = json.loads(response)
+        print("===...===...===...===...===...===...===...===...")
+        print(data)
+        print("===...===...===...===...===...===...===...===...")
         return data['data']['value']
     except json.JSONDecodeError as e:
         print(f"Error: Invalid JSON response: {e}")
@@ -73,7 +101,9 @@ def extract_message(response):
 
 # The token should be the last non-empty line
 token =f"eyJhbGciOiAiUlMyNTYiLCAia2lkIjogIm5jZ1FmdFpJWncifQ.eyJhdXRoIjogImJhc2ljIiwgImZ0YyI6IDIsICJpYXQiOiAxNzI3ODI0NTEwLCAianRpIjogIm9IRVhRTmJ6SXNSRnpDdjMyRV91SHciLCAidHlwIjogImpvbWF4IiwgInZhdCI6IDE3Mjc4MjQ1MTAsICJmYWN0b3JzIjogeyJrX2ZlZCI6IDE3Mjc4MjQ1MTAsICJwX29rdGEiOiAxNzI3ODI0NTEwfSwgImN0eCI6ICIiLCAiYWNjb3VudE5hbWUiOiAiZ2RpYXp2aWxsZWdhcyIsICJzdWIiOiAiNDM4MzQwIiwgInV0eXAiOiAxMDF9.MXEjyo17HeeEdCwPoz-q9S6hlxxkK7971Gsjz5lYzKshFpkfIvt9JarCiDkmZfb8jowvgeGTkcBfJnKpqktP1dP6OKRP_0wcj0wONzwLFFB76Md6ulaTLbsObLwvOlPmGc6dPK1deCWGuJZqlUd3jGHoG_VlCMkwE9rKeA3EOG3e8L0JKiIUk8e10Loj4sb6r7cbHQEZ5PuEQSG9uzFNzJZcXbNQIElXki5A7aAMnU3VHws-VzkBi26q53mVpU0BGL1UDmk7HUKY22RrUpoABJydVWcTW1wHCMBurCL0vRi9CGMmMsvjAgKyrBFP00CLZ5yxS2mVqnozeIIwqi_OzQ"
-print(token)
+print("==========================================================diff_result")
+print(diff_result)
+print("==========================================================diff_result")
 url = 'https://caas.api.godaddy.com/v1/prompts'
 headers = {
     'Authorization': f"sso-jwt {token}",
@@ -81,10 +111,10 @@ headers = {
     'Content-Type': 'application/json'
 }
 data = {
-    'prompt': '{prompt}{diff_result}',
+    'prompt': f"'{prompt}{diff_result}'",
     'provider': 'openai_chat',
     'providerOptions': {
-        'model': 'gpt-3.5-turbo'
+        'model': 'gpt-4o'
     }
 }
 
@@ -92,4 +122,3 @@ response = requests.post(url, headers=headers, json=data)
 json_message = f"{response.text}"
 message = extract_message(json_message)
 print(message)
-print(requests.__version__)
