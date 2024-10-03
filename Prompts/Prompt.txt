@@ -26,7 +26,6 @@ Output Format:
 * Recommendation: Steps or code changes required to fix the issue.
 * Severity Level: Critical, High, Medium, or Low.
 
-
 Output Format:
 
 Please provide your findings in a JSON file with the following structure (wrapped in triple apostrohpes):
@@ -73,7 +72,8 @@ Example (wrapped in triple apostrohpes):
 '''
 
 Use this framework to conduct a thorough security review of the app code, ensuring all potential vulnerabilities are identified and addressed in the specified JSON format.
-If there are not any threads or security issues then output must a json with the next format.
+You must not include any help, description, introduction, questions or anything outside the json output.
+If there are not any threads or security issues then output must be only a json with the next format and 0 explanations or anything more.
 '''
 {"coriander_status": "passed"}
 '''
