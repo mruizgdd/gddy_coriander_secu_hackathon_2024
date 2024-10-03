@@ -2,8 +2,6 @@ import json
 import subprocess
 import requests
 
-from codeDiff import diff_result
-
 prompt = """
 As a mobile security expert, please perform a comprehensive security analysis of the provided Android/iOS app code. Your analysis should focus on identifying potential security vulnerabilities, including but not limited to:
 
@@ -91,19 +89,15 @@ def extract_message(response):
 
     try:
         data = json.loads(response)
-        print("===...===...===...===...===...===...===...===...")
-        print(data)
-        print("===...===...===...===...===...===...===...===...")
         return data['data']['value']
     except json.JSONDecodeError as e:
         print(f"Error: Invalid JSON response: {e}")
         return None
 
 # The token should be the last non-empty line
-token =f"eyJhbGciOiAiUlMyNTYiLCAia2lkIjogIm5jZ1FmdFpJWncifQ.eyJhdXRoIjogImJhc2ljIiwgImZ0YyI6IDIsICJpYXQiOiAxNzI3ODI0NTEwLCAianRpIjogIm9IRVhRTmJ6SXNSRnpDdjMyRV91SHciLCAidHlwIjogImpvbWF4IiwgInZhdCI6IDE3Mjc4MjQ1MTAsICJmYWN0b3JzIjogeyJrX2ZlZCI6IDE3Mjc4MjQ1MTAsICJwX29rdGEiOiAxNzI3ODI0NTEwfSwgImN0eCI6ICIiLCAiYWNjb3VudE5hbWUiOiAiZ2RpYXp2aWxsZWdhcyIsICJzdWIiOiAiNDM4MzQwIiwgInV0eXAiOiAxMDF9.MXEjyo17HeeEdCwPoz-q9S6hlxxkK7971Gsjz5lYzKshFpkfIvt9JarCiDkmZfb8jowvgeGTkcBfJnKpqktP1dP6OKRP_0wcj0wONzwLFFB76Md6ulaTLbsObLwvOlPmGc6dPK1deCWGuJZqlUd3jGHoG_VlCMkwE9rKeA3EOG3e8L0JKiIUk8e10Loj4sb6r7cbHQEZ5PuEQSG9uzFNzJZcXbNQIElXki5A7aAMnU3VHws-VzkBi26q53mVpU0BGL1UDmk7HUKY22RrUpoABJydVWcTW1wHCMBurCL0vRi9CGMmMsvjAgKyrBFP00CLZ5yxS2mVqnozeIIwqi_OzQ"
-print("==========================================================diff_result")
-print(diff_result)
-print("==========================================================diff_result")
+token =f"eyJhbGciOiAiUlMyNTYiLCAia2lkIjogIm5jZ1FmdFpJWncifQ.eyJhdXRoIjogImJhc2ljIiwgImZ0YyI6IDIsICJpYXQiOiAxNzI3OTY3Njc0LCAianRpIjogIktyX3J1MllxSDJsd0tiSVZQTkgyWVEiLCAidHlwIjogImpvbWF4IiwgInZhdCI6IDE3Mjc5Njc2NzQsICJmYWN0b3JzIjogeyJrX2ZlZCI6IDE3Mjc5Njc2NzQsICJwX29rdGEiOiAxNzI3OTY3Njc0fSwgImN0eCI6ICIiLCAiYWNjb3VudE5hbWUiOiAiZ2RpYXp2aWxsZWdhcyIsICJzdWIiOiAiNDM4MzQwIiwgInV0eXAiOiAxMDF9.Up28oAzgU73clTvxOlCssi-ri0iEDAU0jjyGMESfWc9CkZQSZ0WVzhFcwnOFopXivV8BbE6CL86MkH6wDmkKrbOy2cDWOCTS5aTRjhhoPJNilcIR3J2XVTmETSrb37hxnh011Grm-UuqBEfJQp_kH2NdFw-93LI_-XGOd3GUbA8MaudrtwSA6U2LRDMhKqgP0Z8aElCU-DOxgTSPBlm4IEBJPF45FZh-fK6zr9eD3djJqnXFqo8-oKJOwXv5tUo34dwA8Lahi5RJUqaA2kbvHZozpXmbE7ytVIIhXi_O0z-svAwZ08NxR8SyeU5KaMJV1OKhOu_PX_NZxBIoz5iVSQ"
+with open('diff_result.txt', 'r') as f:
+    diff_result = f.read()
 url = 'https://caas.api.godaddy.com/v1/prompts'
 headers = {
     'Authorization': f"sso-jwt {token}",
