@@ -37,6 +37,8 @@ Output Format:
 Please provide your findings in a JSON file with the following structure (wrapped in triple apostrohpes):
 
 '''
+{"coriander_status": "failed",
+"findings":
 [
   {
     "title": "Brief title of the vulnerability",
@@ -55,12 +57,14 @@ Please provide your findings in a JSON file with the following structure (wrappe
     "severity_level": "Critical/High/Medium/Low"
   }
   // ... Continue for each vulnerability found
-]
+]}
 '''
 
 Example (wrapped in triple apostrohpes):
 
 '''
+{"coriander_status": "failed",
+"findings":
 [
   {
     "title": "Hardcoded API Key Found in Source Code",
@@ -70,10 +74,15 @@ Example (wrapped in triple apostrohpes):
     "recommendation": "Remove the hardcoded API key and store it securely using Android's Keystore system or fetch it securely from a remote server after authentication.",
     "severity_level": "High"
   }
-]
+]}
 '''
 
 Use this framework to conduct a thorough security review of the app code, ensuring all potential vulnerabilities are identified and addressed in the specified JSON format.
+If there are not any threads or security issues then output must a json with the next format.
+'''
+{"coriander_status": "passed"}
+'''
+
 The next lines are the code to review.
 """
 
@@ -116,3 +125,5 @@ response = requests.post(url, headers=headers, json=data)
 json_message = f"{response.text}"
 message = extract_message(json_message)
 print(message)
+with open('coriander_report_file.txt', 'w') as f:
+    f.write(str(message))
