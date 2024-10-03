@@ -1,4 +1,4 @@
-# Security Check GitHub Action Requirements
+# Coriander Security Check GitHub Action Requirements
 
 This document outlines the necessary requirements and setup for the Security Check GitHub Action. This action performs a security analysis on pull requests by checking the git diff and identifying potential security issues.
 
