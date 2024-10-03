@@ -10,11 +10,13 @@ jobs:
     steps:
       - name: Checkout current repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Checkout external repository
         uses: actions/checkout@v3
         with:
-          repository: mruizgdd/gddy_coriander_secu_hackathon_2024
+          repository: gdiazvillegas/gddy_coriander_secu_hackathon_2024
           path: coriander
           ref: main
           token: ${{secrets.CORIANDER_TOKEN}}
@@ -28,7 +30,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r coriander/requirements.txt
+          
       - name: Run external script with PR diff
         run: |
-          python coriander/CoreApp/codeDiff.py "${{ env.PR_DIFF }}"
-          python coriander/CoreApp/promptWithToken.py "${{ env.PR_DIFF }}"
+          python coriander/CoreApp/codeDiff.py ${{github.event.pull_request.base.sha}} ${{github.event.pull_request.head.sha}}
+
+      - name: Run promptWithToken script
+        run: python coriander/CoreApp/promptWithToken.py
