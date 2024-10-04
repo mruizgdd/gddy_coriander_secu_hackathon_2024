@@ -1,9 +1,19 @@
 import json
-import subprocess
-import requests
 import re
+import requests
 
-prompt = """
+# Constants
+SECRET_AUTH_TOKEN = os.environ.get('SECRET_AUTH_TOKEN') 
+if not SECRET_AUTH_TOKEN:
+    raise ValueError("SECRET_AUTH_TOKEN environment variable is not set")
+
+URL = 'https://caas.api.godaddy.com/v1/threads'
+HEADERS = {
+    'Authorization': f"sso-jwt {SECRET_AUTH_TOKEN}",
+    'accept': 'application/json',
+    'Content-Type': 'application/json'
+}
+PROMPT = """
 As a mobile security expert, please perform a comprehensive security analysis of the provided Android/iOS app code. Your analysis should focus on identifying potential security vulnerabilities, related to the following categories:
 
 Categories:
@@ -63,22 +73,33 @@ The next lines are the code to review:
 
 """
 
-def extract_message(response):
+class ProviderOptions:
+    def __init__(self, frequency_penalty=0, max_tokens=4096, model="gpt-4o", 
+                 presence_penalty=0, temperature=0.7, top_p=1):
+        self.frequency_penalty = frequency_penalty
+        self.max_tokens = max_tokens
+        self.model = model
+        self.presence_penalty = presence_penalty
+        self.temperature = temperature
+        self.top_p = top_p
+
+    def to_dict(self):
+        return {
+            "frequency_penalty": self.frequency_penalty,
+            "max_tokens": self.max_tokens,
+            "model": self.model,
+            "presence_penalty": self.presence_penalty,
+            "temperature": self.temperature,
+            "top_p": self.top_p
+        }
+
+def extract_json_data(response, key):
     try:
         data = json.loads(response)
-        return data['data']['value']['content']
+        return data['data'][key]
     except json.JSONDecodeError as e:
         print(f"Error: Invalid JSON response: {e}")
         return None
-
-def extract_chat_id(response):
-    try:
-        data = json.loads(response)
-        return data['data']['id']
-    except json.JSONDecodeError as e:
-        print(f"Error: Invalid JSON response: {e}")
-        return None
-
 
 def remove_markdown_code_indicators(text):
     text = re.sub(r'^```(markdown)?[\s\n]*', '', text)
@@ -86,81 +107,52 @@ def remove_markdown_code_indicators(text):
     return text.strip()
 
 
-# The token should be the last non-empty line
-token =f"eyJhbGciOiAiUlMyNTYiLCAia2lkIjogIm5jZ1FmdFpJWncifQ.eyJhdXRoIjogImJhc2ljIiwgImZ0YyI6IDIsICJpYXQiOiAxNzI3OTY3Njc0LCAianRpIjogIktyX3J1MllxSDJsd0tiSVZQTkgyWVEiLCAidHlwIjogImpvbWF4IiwgInZhdCI6IDE3Mjc5Njc2NzQsICJmYWN0b3JzIjogeyJrX2ZlZCI6IDE3Mjc5Njc2NzQsICJwX29rdGEiOiAxNzI3OTY3Njc0fSwgImN0eCI6ICIiLCAiYWNjb3VudE5hbWUiOiAiZ2RpYXp2aWxsZWdhcyIsICJzdWIiOiAiNDM4MzQwIiwgInV0eXAiOiAxMDF9.Up28oAzgU73clTvxOlCssi-ri0iEDAU0jjyGMESfWc9CkZQSZ0WVzhFcwnOFopXivV8BbE6CL86MkH6wDmkKrbOy2cDWOCTS5aTRjhhoPJNilcIR3J2XVTmETSrb37hxnh011Grm-UuqBEfJQp_kH2NdFw-93LI_-XGOd3GUbA8MaudrtwSA6U2LRDMhKqgP0Z8aElCU-DOxgTSPBlm4IEBJPF45FZh-fK6zr9eD3djJqnXFqo8-oKJOwXv5tUo34dwA8Lahi5RJUqaA2kbvHZozpXmbE7ytVIIhXi_O0z-svAwZ08NxR8SyeU5KaMJV1OKhOu_PX_NZxBIoz5iVSQ"
-with open('diff_result.txt', 'r') as file:
-    diff_result = file.read()
-url = 'https://caas.api.godaddy.com/v1/threads'
-headers = {
-    'Authorization': f"sso-jwt {token}",
-    'accept': 'application/json',
-    'Content-Type': 'application/json'
-}
-
-
-data = {
-    "description": "",
-    "isPrivate": "false",
-    "messages":
-    [
-        {
-            "content": f"{prompt}\n{diff_result}",
-            "from": "user"
-        }
-    ],
-    "name": "mobile security expert",
-    "protected": "author",
-    "provider": "openai_chat",
-    "providerOptions":
-    {
-        "frequency_penalty": 0,
-        "max_tokens": 4096,
-        "model": "gpt-4o",
-        "presence_penalty": 0,
-        "temperature": 0.7,
-        "top_p": 1
+def create_chat_thread(prompt, diff_result):
+    provider_options = ProviderOptions()  # Using default values
+    data = {
+        "description": "",
+        "isPrivate": "false",
+        "messages": [{"content": f"{prompt}\n{diff_result}", "from": "user"}],
+        "name": "mobile security expert",
+        "protected": "author",
+        "provider": "openai_chat",
+        "providerOptions": provider_options.to_dict()
     }
-}
+    response = requests.post(URL, headers=HEADERS, json=data)
+    return extract_json_data(response.text, 'id')
 
-
-response = requests.post(url, headers=headers, json=data)
-json_message = f"{response.text}"
-chat_id = extract_chat_id(json_message)
-
-
-data = {
-    "isTemplate": "false",
-    "moderation":
-    {
-        "moderate": "true",
-        "moderatePrompt": "true",
-        "moderateTemplate": "true",
-        "provider": "openai"
-    },
-    "privacy":
-    {
-        "enabled": "detect",
-        "threshold": 0.5
-    },
-    "providerOptions":
-    {
-        "frequency_penalty": 0,
-        "max_tokens": 4096,
-        "model": "gpt-4o",
-        "presence_penalty": 0,
-        "temperature": 0.7,
-        "top_p": 1
+def get_chat_response(chat_id):
+    provider_options = ProviderOptions()
+    data = {
+        "isTemplate": "false",
+        "moderation": {
+            "moderate": "true",
+            "moderatePrompt": "true",
+            "moderateTemplate": "true",
+            "provider": "openai"
+        },
+        "privacy": {
+            "enabled": "detect",
+            "threshold": 0.5
+        },
+        "providerOptions": provider_options.to_dict()
     }
-}
+    get_url = f"{URL}/{chat_id}"
+    response = requests.post(get_url, headers=HEADERS, json=data)
+    return extract_json_data(response.text, 'value')['content']
 
-get_url = f"{url}/{chat_id}"
-chat_response = requests.post(get_url, headers=headers, json=data)
-chat_response_json = f"{chat_response.text}"
+def main():
+    with open('diff_result.txt', 'r') as file:
+        diff_result = file.read()
 
+    chat_id = create_chat_thread(PROMPT, diff_result)
+    if chat_id:
+        message = get_chat_response(chat_id)
+        if message:
+            trimmed_message = remove_markdown_code_indicators(message)
+            print(trimmed_message)
+            with open('result.txt', 'w') as file:
+                file.write(str(trimmed_message))
 
-
-message = extract_message(chat_response_json)
-trimmed_message = remove_markdown_code_indicators(message)
-print(trimmed_message)
-with open('result.txt', 'w') as file:
-    file.write(str(trimmed_message))
+if __name__ == "__main__":
+    main()
