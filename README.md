@@ -27,9 +27,9 @@ This ensures that pull requests cannot be merged until the security check passes
 7. In the search box that appears, find and select the name of the security check status
 8. Scroll down and click "Create" or "Save changes"
 
-### 2. GitHub Secret: CORIANDER_TOKEN
+### 2. GitHub Secret: CORIANDER_TOKEN and CORIANDER_AUTH_TOKEN
 
-A GitHub secret named `CORIANDER_TOKEN` must be set up in your repository. This token should be a GitHub Personal Access Token (Classic) with the following permission:
+A GitHub secret named `CORIANDER_AUTH_TOKEN` must be set up in your repository that is your JoMax JWT Token (you could get it from here https://github.com/gdcorp-engineering/ssojwt) and also `CORIANDER_TOKEN` must be set up in your repository. This token should be a GitHub Personal Access Token (Classic) with the following permission:
 
 - `project - read:project`
 
