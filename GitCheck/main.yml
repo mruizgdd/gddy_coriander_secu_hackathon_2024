@@ -37,18 +37,19 @@ jobs:
           python coriander/CoreApp/codeDiff.py ${{github.event.pull_request.base.sha}} ${{github.event.pull_request.head.sha}}
 
       - name: Run promptWithToken script
-        run: python coriander/CoreApp/promptWithToken.py
+        run: python coriander/CoreApp/promptWithToken.py ${{secrets.CORIANDER_AUTH_TOKEN}}
 
       - name: Check report file
         id: check_report
         run: |
-          if [ -s coriander_report_file.txt ]; then
-            if grep -q '"coriander_status": "passed"' coriander_report_file.txt; then
+          if [ -s result.txt ]; then
+            if grep -qi "No Security Issues Were Found" result.txt; then
               echo "The check has passed."
+              cat result.txt >> $GITHUB_STEP_SUMMARY
               echo "status=success" >> $GITHUB_OUTPUT
             else
               echo "The check has failed."
-              cat coriander_report_file.txt
+              cat result.txt >> $GITHUB_STEP_SUMMARY
               echo "status=failure" >> $GITHUB_OUTPUT
               exit 1
             fi
@@ -58,18 +59,3 @@ jobs:
             exit 1
           fi
 
-      - name: Update PR status
-        if: always()
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.sha,
-              state: '${{ steps.check_report.outputs.status }}',
-              target_url: 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}',
-              description: 'Report check ${{ steps.check_report.outputs.status }}',
-              context: 'Report Check'
-            })
