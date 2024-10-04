@@ -1,9 +1,12 @@
 import json
 import subprocess
 import requests
+import re
 
 prompt = """
-As a mobile security expert, please perform a comprehensive security analysis of the provided Android/iOS app code. Your analysis should focus on identifying potential security vulnerabilities, including but not limited to:
+As a mobile security expert, please perform a comprehensive security analysis of the provided Android/iOS app code. Your analysis should focus on identifying potential security vulnerabilities, related to the following categories:
+
+Categories:
 
 * Insecure Data Storage: Look for sensitive data (e.g., personal information, authentication tokens) stored without proper encryption or protection mechanisms.
 * Improper Input Validation: Check for inputs that are not properly sanitized, which could lead to injection attacks or crashes.
@@ -34,96 +37,130 @@ Output Format:
 
 Output Format:
 
-Please provide your findings in a JSON file with the following structure (wrapped in triple apostrohpes):
+Please provide your findings in a markdown table with the following structure:
 
-'''
-{"coriander_status": "failed",
-"findings":
-[
-  {
-    "title": "Brief title of the vulnerability",
-    "description": "Detailed explanation of the issue.",
-    "location": "File names and line numbers where the issue is found.",
-    "impact": "Potential consequences if the vulnerability is exploited.",
-    "recommendation": "Steps or code changes required to fix the issue.",
-    "severity_level": "Critical/High/Medium/Low"
-  },
-  {
-    "title": "Next vulnerability title",
-    "description": "Detailed explanation of the next issue.",
-    "location": "File names and line numbers where the next issue is found.",
-    "impact": "Potential consequences if the next vulnerability is exploited.",
-    "recommendation": "Steps or code changes required to fix the next issue.",
-    "severity_level": "Critical/High/Medium/Low"
-  }
-  // ... Continue for each vulnerability found
-]}
-'''
+| 🏷️ Title | 📝 Description | 📍 Location | 💥 Impact | 🛠️ Recommendation | ⚠️ Severity Level |
+|----------|---------------|------------|-----------|-------------------|-------------------|
+| Brief title of the vulnerability | Detailed explanation of the issue. | File names and line numbers where the issue is found. | Potential consequences if the vulnerability is exploited. | Steps or code changes required to fix the issue. | 🚨 Critical/🔴 High/🟠 Medium/🟡 Low |
+| Next vulnerability title | Detailed explanation of the next issue. | File names and line numbers where the next issue is found. | Potential consequences if the next vulnerability is exploited. | Steps or code changes required to fix the next issue. | 🚨 Critical/🔴 High/🟠 Medium/🟡 Low |
 
-Example (wrapped in triple apostrohpes):
+Issues Found Example:
 
-'''
-{"coriander_status": "failed",
-"findings":
-[
-  {
-    "title": "Hardcoded API Key Found in Source Code",
-    "description": "An API key for the payment gateway is hardcoded in 'PaymentProcessor.java' at line 45.",
-    "location": "/app/src/main/java/com/example/payment/PaymentProcessor.java:45",
-    "impact": "Attackers with access to the APK can decompile it to retrieve the API key, leading to unauthorized transactions.",
-    "recommendation": "Remove the hardcoded API key and store it securely using Android's Keystore system or fetch it securely from a remote server after authentication.",
-    "severity_level": "High"
-  }
-]}
-'''
+| 🏷️ Title | 📝 Description | 📍 Location | 💥 Impact | 🛠️ Recommendation | ⚠️ Severity Level |
+|----------|---------------|------------|-----------|-------------------|-------------------|
+| SQL Injection in Login Form | The login form is vulnerable to SQL injection attacks due to unsanitized user input being directly concatenated into SQL queries. | auth.php, lines 45-52 | An attacker could bypass authentication, extract sensitive data from the database, or potentially gain full control of the database. | Use prepared statements or parameterized queries instead of string concatenation. Implement input validation and sanitization. | 🚨 Critical
 
-Use this framework to conduct a thorough security review of the app code, ensuring all potential vulnerabilities are identified and addressed in the specified JSON format.
-If there are not any threads or security issues then output must a json with the next format.
-'''
-{"coriander_status": "passed"}
-'''
 
-The next lines are the code to review.
+No Issues Found Example:
+
+✅ No Security Issues Were Found!
+
+Use this framework to conduct a thorough security review of the app code, ensuring all potential vulnerabilities are identified and addressed, please DO NOT add any additional explainations or comments, ONLY answer using RAW markdown code depending on the case (Issues Found or No Issues Found).
+Please only take in consideration code that is related to any of the categories above.
+
+
+The next lines are the code to review:
+
 """
 
 def extract_message(response):
-    """Extracts the 'message' value from a JSON response.
-
-    Args:
-        response (str): The JSON response string.
-
-    Returns:
-        str: The 'message' value, or None if it's not found.
-    """
-
     try:
         data = json.loads(response)
-        return data['data']['value']
+        return data['data']['value']['content']
     except json.JSONDecodeError as e:
         print(f"Error: Invalid JSON response: {e}")
         return None
 
+def extract_chat_id(response):
+    try:
+        data = json.loads(response)
+        return data['data']['id']
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON response: {e}")
+        return None
+
+
+def remove_markdown_code_indicators(text):
+    text = re.sub(r'^```(markdown)?[\s\n]*', '', text)
+    text = re.sub(r'[\s\n]*```$', '', text)
+    return text.strip()
+
+
 # The token should be the last non-empty line
 token =f"eyJhbGciOiAiUlMyNTYiLCAia2lkIjogIm5jZ1FmdFpJWncifQ.eyJhdXRoIjogImJhc2ljIiwgImZ0YyI6IDIsICJpYXQiOiAxNzI3OTY3Njc0LCAianRpIjogIktyX3J1MllxSDJsd0tiSVZQTkgyWVEiLCAidHlwIjogImpvbWF4IiwgInZhdCI6IDE3Mjc5Njc2NzQsICJmYWN0b3JzIjogeyJrX2ZlZCI6IDE3Mjc5Njc2NzQsICJwX29rdGEiOiAxNzI3OTY3Njc0fSwgImN0eCI6ICIiLCAiYWNjb3VudE5hbWUiOiAiZ2RpYXp2aWxsZWdhcyIsICJzdWIiOiAiNDM4MzQwIiwgInV0eXAiOiAxMDF9.Up28oAzgU73clTvxOlCssi-ri0iEDAU0jjyGMESfWc9CkZQSZ0WVzhFcwnOFopXivV8BbE6CL86MkH6wDmkKrbOy2cDWOCTS5aTRjhhoPJNilcIR3J2XVTmETSrb37hxnh011Grm-UuqBEfJQp_kH2NdFw-93LI_-XGOd3GUbA8MaudrtwSA6U2LRDMhKqgP0Z8aElCU-DOxgTSPBlm4IEBJPF45FZh-fK6zr9eD3djJqnXFqo8-oKJOwXv5tUo34dwA8Lahi5RJUqaA2kbvHZozpXmbE7ytVIIhXi_O0z-svAwZ08NxR8SyeU5KaMJV1OKhOu_PX_NZxBIoz5iVSQ"
-with open('diff_result.txt', 'r') as f:
-    diff_result = f.read()
-url = 'https://caas.api.godaddy.com/v1/prompts'
+with open('diff_result.txt', 'r') as file:
+    diff_result = file.read()
+url = 'https://caas.api.godaddy.com/v1/threads'
 headers = {
     'Authorization': f"sso-jwt {token}",
     'accept': 'application/json',
     'Content-Type': 'application/json'
 }
+
+
 data = {
-    'prompt': f"'{prompt}{diff_result}'",
-    'provider': 'openai_chat',
-    'providerOptions': {
-        'model': 'gpt-4o'
+    "description": "",
+    "isPrivate": "false",
+    "messages":
+    [
+        {
+            "content": f"{prompt}\n{diff_result}",
+            "from": "user"
+        }
+    ],
+    "name": "mobile security expert",
+    "protected": "author",
+    "provider": "openai_chat",
+    "providerOptions":
+    {
+        "frequency_penalty": 0,
+        "max_tokens": 4096,
+        "model": "gpt-4o",
+        "presence_penalty": 0,
+        "temperature": 0.7,
+        "top_p": 1
     }
 }
 
+
 response = requests.post(url, headers=headers, json=data)
 json_message = f"{response.text}"
-message = extract_message(json_message)
-print(message)
-with open('coriander_report_file.txt', 'w') as f:
-    f.write(str(message))
+chat_id = extract_chat_id(json_message)
+
+
+data = {
+    "isTemplate": "false",
+    "moderation":
+    {
+        "moderate": "true",
+        "moderatePrompt": "true",
+        "moderateTemplate": "true",
+        "provider": "openai"
+    },
+    "privacy":
+    {
+        "enabled": "detect",
+        "threshold": 0.5
+    },
+    "providerOptions":
+    {
+        "frequency_penalty": 0,
+        "max_tokens": 4096,
+        "model": "gpt-4o",
+        "presence_penalty": 0,
+        "temperature": 0.7,
+        "top_p": 1
+    }
+}
+
+get_url = f"{url}/{chat_id}"
+chat_response = requests.post(get_url, headers=headers, json=data)
+chat_response_json = f"{chat_response.text}"
+
+
+
+message = extract_message(chat_response_json)
+trimmed_message = remove_markdown_code_indicators(message)
+print(trimmed_message)
+with open('result.txt', 'w') as file:
+    file.write(str(trimmed_message))
