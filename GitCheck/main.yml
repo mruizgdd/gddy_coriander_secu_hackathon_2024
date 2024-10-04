@@ -19,7 +19,7 @@ jobs:
         with:
           repository: mruizgdd/gddy_coriander_secu_hackathon_2024
           path: coriander
-          ref: feature/table-version
+          ref: main
           token: ${{secrets.CORIANDER_TOKEN}}
 
       - name: Set up Python
@@ -37,7 +37,7 @@ jobs:
           python coriander/CoreApp/codeDiff.py ${{github.event.pull_request.base.sha}} ${{github.event.pull_request.head.sha}}
 
       - name: Run promptWithToken script
-        run: python coriander/CoreApp/promptWithToken.py
+        run: python coriander/CoreApp/promptWithToken.py ${{secrets.CORIANDER_AUTH_TOKEN}}
 
       - name: Check report file
         id: check_report

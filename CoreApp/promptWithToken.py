@@ -1,18 +1,8 @@
 import json
 import re
 import requests
+import argparse
 
-# Constants
-SECRET_AUTH_TOKEN = os.environ.get('SECRET_AUTH_TOKEN') 
-if not SECRET_AUTH_TOKEN:
-    raise ValueError("SECRET_AUTH_TOKEN environment variable is not set")
-
-URL = 'https://caas.api.godaddy.com/v1/threads'
-HEADERS = {
-    'Authorization': f"sso-jwt {SECRET_AUTH_TOKEN}",
-    'accept': 'application/json',
-    'Content-Type': 'application/json'
-}
 PROMPT = """
 As a mobile security expert, please perform a comprehensive security analysis of the provided Android/iOS app code. Your analysis should focus on identifying potential security vulnerabilities, related to the following categories:
 
@@ -93,6 +83,14 @@ class ProviderOptions:
             "top_p": self.top_p
         }
 
+def get_headers(secret_token):
+    return {
+        'Authorization': f"sso-jwt {secret_token}",
+        'accept': 'application/json',
+        'Content-Type': 'application/json'
+    }
+
+# Helper functions
 def extract_json_data(response, key):
     try:
         data = json.loads(response)
@@ -106,8 +104,8 @@ def remove_markdown_code_indicators(text):
     text = re.sub(r'[\s\n]*```$', '', text)
     return text.strip()
 
-
-def create_chat_thread(prompt, diff_result):
+# Main functionality
+def create_chat_thread(url, headers, prompt, diff_result):
     provider_options = ProviderOptions()  # Using default values
     data = {
         "description": "",
@@ -118,11 +116,11 @@ def create_chat_thread(prompt, diff_result):
         "provider": "openai_chat",
         "providerOptions": provider_options.to_dict()
     }
-    response = requests.post(URL, headers=HEADERS, json=data)
+    response = requests.post(url, headers=headers, json=data)
     return extract_json_data(response.text, 'id')
 
-def get_chat_response(chat_id):
-    provider_options = ProviderOptions()
+def get_chat_response(url, headers, chat_id):
+    provider_options = ProviderOptions()  # Using default values
     data = {
         "isTemplate": "false",
         "moderation": {
@@ -137,17 +135,20 @@ def get_chat_response(chat_id):
         },
         "providerOptions": provider_options.to_dict()
     }
-    get_url = f"{URL}/{chat_id}"
-    response = requests.post(get_url, headers=HEADERS, json=data)
+    get_url = f"{url}/{chat_id}"
+    response = requests.post(get_url, headers=headers, json=data)
     return extract_json_data(response.text, 'value')['content']
 
-def main():
+def main(secret_token):
+    url = 'https://caas.api.godaddy.com/v1/threads'
+    headers = get_headers(secret_token)
+
     with open('diff_result.txt', 'r') as file:
         diff_result = file.read()
 
-    chat_id = create_chat_thread(PROMPT, diff_result)
+    chat_id = create_chat_thread(url, headers, PROMPT, diff_result)
     if chat_id:
-        message = get_chat_response(chat_id)
+        message = get_chat_response(url, headers, chat_id)
         if message:
             trimmed_message = remove_markdown_code_indicators(message)
             print(trimmed_message)
@@ -155,4 +156,8 @@ def main():
                 file.write(str(trimmed_message))
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Process chat with a secret token.")
+    parser.add_argument("secret_token", help="The secret authentication token")
+    args = parser.parse_args()
+
+    main(args.secret_token)
